@@ -1,62 +1,122 @@
-# NC Plus One API
+# NC Plus One
 
-## Overview
+NC Plus One is an events management project I'm building as part of the Northcoders Data Engineering Bootcamp.
 
-NC Plus One is a RESTful API for an events management platform.
+The project uses Python and PostgreSQL to manage data relating to events, users, venues and RSVPs.
 
-The API allows users to register, discover events, RSVP to events,
-and manage their attendance.
+I'm currently working on the database side of the project, including setting up the connection, creating tables and preparing the database for seeding.
 
-Event organisers can create and manage events, as well as view
-statistics about their attendees.
-
-This project focuses on backend development, database management,
-and building an API that can be integrated with a frontend application.
-
-## Technologies
+## Tech Stack
 
 - Python
 - PostgreSQL
-- SQL
-- Git & GitHub
+- Psycopg 3
+- Python-dotenv
 
-## Database Setup
+## Getting Started
 
-This project uses PostgreSQL to store and manage application data.
-
-### Prerequisites
-
-- PostgreSQL installed and running.
-- Access to the PostgreSQL command-line tool (`psql`).
-
-### Setting Up the Database
-
-The database setup script is located at `db/setup.sql`, outside the `db/data` folder.
-
-During development, the script can be created from the project's root directory using:
+### 1. Clone the Repository
 
 ```bash
-touch db/setup.sql
+git clone <repository-url>
+cd nc-plus-one
 ```
 
-Once the script contains the required SQL commands, run:
+### 2. Set Up a Virtual Environment
+
+Create and activate a virtual environment:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Set Up PostgreSQL
+
+Make sure PostgreSQL is installed and running locally.
+
+Run the database setup script from the project root:
 
 ```bash
 psql -d postgres -f db/setup.sql
 ```
 
-This script will:
-1. Drop the existing `nc_plus_one` database if it exists.
-2. Create a fresh database named `nc_plus_one`.
+This creates the `nc_plus_one` database.
 
-**Warning:** Running this script will delete any existing data in the database.
+Note: Check the setup script before running it, as it may recreate an existing database.
 
-### Verifying the Database
+### 5. Configure Environment Variables
 
-To check that the database was created successfully, run:
+Database credentials are stored in a `.env` file rather than being hardcoded into the Python code.
+
+Create your own `.env` file using the provided example:
 
 ```bash
-psql -l
+cp .env.example .env
 ```
 
-The `nc_plus_one` database should appear in the list.
+Add your local PostgreSQL credentials:
+
+```dotenv
+DB_NAME=nc_plus_one
+DB_USER=your_username
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
+```
+
+The `.env` file is ignored by Git to prevent credentials from being committed.
+
+### 6. Test the Database Connection
+
+The database connection is handled by `get_connection()` in `db/connection.py`.
+
+To check that everything is working, run:
+
+```bash
+python -c 'from db.connection import get_connection; conn = get_connection(); print(conn.info.dbname); conn.close()'
+```
+
+You should see:
+
+```text
+nc_plus_one
+```
+
+## Project Structure
+
+```text
+nc-plus-one/
+├── db/
+│   ├── data/
+│   │   ├── events.json
+│   │   ├── rsvps.json
+│   │   ├── users.json
+│   │   └── venues.json
+│   ├── connection.py
+│   ├── seed.py
+│   └── setup.sql
+├── .env.example
+├── .gitignore
+├── README.md
+└── requirements.txt
+```
+
+## Current Progress
+
+- [x] Set up PostgreSQL database
+- [x] Configure environment variables
+- [x] Create reusable database connection
+- [x] Test database connection
+- [ ] Create database tables
+- [ ] Implement database seeding
+- [ ] Build API endpoints
+- [ ] Add automated tests
+
+I'll update this README as I work through the remaining features.
