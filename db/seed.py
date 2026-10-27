@@ -1,8 +1,8 @@
 from db.connection import get_connection
 import json 
 
-def seed_users():
-    conn = get_connection()
+def seed_users(database=None, data_path="db/data/dev"):    
+    conn = get_connection(database)
     cursor = conn.cursor()
     cursor.execute("DROP TABLE IF EXISTS users")
     cursor.execute("""CREATE TABLE users (id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
@@ -13,7 +13,7 @@ def seed_users():
     )
     
     """)
-    data  = read_file('users')
+    data  = read_file('users',data_path)
     for user in data:
         cursor.execute("""
             INSERT INTO users (email, password, name)
@@ -25,11 +25,11 @@ def seed_users():
     conn.close()
 
 
-    pass
+    
 
 
-def seed_venues():
-    conn = get_connection()
+def seed_venues(database=None, data_path="db/data/dev"):    
+    conn = get_connection(database)
     cursor = conn.cursor()
     cursor.execute("DROP TABLE IF EXISTS venues")
     cursor.execute("""CREATE TABLE venues (id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
@@ -39,7 +39,7 @@ def seed_venues():
     )
     
     """)
-    data  = read_file('venues')
+    data  = read_file('venues',data_path)
     for user in data:
         cursor.execute("""
             INSERT INTO venues (name, address, capacity)
@@ -51,8 +51,8 @@ def seed_venues():
     conn.close()
 
 
-def seed_events():
-    conn = get_connection()
+def seed_events(database=None, data_path="db/data/dev"):    
+    conn = get_connection(database)
     cursor = conn.cursor()
 
     cursor.execute("DROP TABLE IF EXISTS events")
@@ -78,7 +78,7 @@ def seed_events():
         )
     """)
 
-    data = read_file("events")
+    data = read_file("events",data_path)
 
     for event in data:
         cursor.execute("""
@@ -98,11 +98,11 @@ def seed_events():
     conn.commit()
     conn.close()
 
-    pass
+    
     
 
-def seed_rsvps():
-    conn = get_connection()
+def seed_rsvps(database=None, data_path="db/data/dev"):    
+    conn = get_connection(database)
     cursor = conn.cursor()
 
     cursor.execute("DROP TABLE IF EXISTS rsvps")
@@ -124,7 +124,7 @@ def seed_rsvps():
         )
     """)
 
-    data = read_file("rsvps")
+    data = read_file("rsvps",data_path)
 
     for rsvp in data:
         cursor.execute("""
@@ -139,18 +139,17 @@ def seed_rsvps():
     cursor.close()
     conn.close()
 
-def read_file(file):
-    with open(f"db/data/{file}.json","r") as f:
+def read_file(file, data_path="db/data/dev"):
+    with open(f"{data_path}/{file}.json", "r") as f:
         data = json.load(f)
     return data
 
 
-read_file("users")
 
 
 
-def seed():
-    conn = get_connection()
+def seed(database=None, data_path="db/data/dev"):
+    conn = get_connection(database)
     cursor = conn.cursor()
 
     cursor.execute("DROP TABLE IF EXISTS rsvps")
@@ -160,16 +159,20 @@ def seed():
     cursor.close()
     conn.close()
 
-    seed_users()
-    seed_venues()
-    seed_events()
-    seed_rsvps()
+    seed_users(database,data_path)
+    seed_venues(database,data_path)
+    seed_events(database,data_path)
+    seed_rsvps(database,data_path)
+
+def seed_test():
+    seed("nc_plus_one_test","db/data/test")
 
 
 
 
 if __name__ == "__main__":
     seed()
+    seed_test()
 
 # def show_table(table):
 #     conn = get_connection()
