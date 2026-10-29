@@ -24,3 +24,4 @@ def get_connection(database=None):
     )
 
     return connection
+
