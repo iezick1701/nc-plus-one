@@ -1,5 +1,6 @@
 from db.connection import get_connection
 import json 
+from db.password import hash_pwd
 
 def seed_users(database=None, data_path="db/data/dev"):    
     conn = get_connection(database)
@@ -16,10 +17,10 @@ def seed_users(database=None, data_path="db/data/dev"):
     data  = read_file('users',data_path)
     for user in data:
         cursor.execute("""
-            INSERT INTO users (email, password, name)
+            INSERT INTO users (name, email, password)
                 VALUES (%s, %s, %s);
             """,
-            ( user["email"], user["password"], user["name"])
+            (user["name"] ,user["email"], hash_pwd(user["password"]))
         )
     conn.commit()
     conn.close()

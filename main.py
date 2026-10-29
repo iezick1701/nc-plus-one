@@ -1,7 +1,12 @@
 from fastapi import FastAPI, Request
-from fastapi.exceptions import HTTPException
+from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.responses import JSONResponse
 from db.connection import get_connection
+from pydantic import BaseModel
+from db.password import check_pwd
+from db.token import create_access_token
+from fastapi.responses import JSONResponse
+import jwt
 
 app = FastAPI(title="NC Plus One API", debug=True)
 
@@ -65,3 +70,81 @@ def get_event_by_id(id: str):
     cursor.close()
     conn.close()
     return {"event":event_dict}
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+    
+class CreateUser(BaseModel):
+    name:str
+    email: str
+    password: str
+
+@app.exception_handler(RequestValidationError)
+def check_cred(request: Request, exc: RequestValidationError):
+    if request.url.path == "/api/auth/login":
+        return JSONResponse(content ={"error":"Invalid login request"}, status_code=400)
+    return JSONResponse(content ={"error":exc.errors()}, status_code=422)
+        
+
+
+
+@app.post("/api/auth/login")
+def check_login_cred(user:LoginRequest):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+                "SELECT * FROM users WHERE email = %s",
+                (user.email,)
+            )
+    found_user = cursor.fetchone()
+    if found_user is None:
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    pwd = found_user[2]
+    if check_pwd(user.password,pwd) is False:
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    cursor.close()
+    conn.close()
+    
+    token = create_access_token(found_user[0])
+    return {"token":token}
+
+
+@app.post("/api/auth/register")
+def check_login_cred(user:LoginRequest):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+                "INSERT INTO users(email,password,names
+                ),
+                (user.email,)
+            )
+    found_user = cursor.fetchone()
+    if found_user is None:
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    pwd = found_user[2]
+    if check_pwd(user.password,pwd) is False:
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    cursor.close()
+    conn.close()
+    
+    token = create_access_token(found_user[0])
+    return {"token":token}
+    
+
+    
+
+
+
