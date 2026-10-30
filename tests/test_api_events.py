@@ -31,3 +31,4 @@ def test_get_event_by_id_not_found(api_client):
 def test_get_event_by_id_not_found(api_client):
     response = api_client.get("/api/events/rubbuebirwe")
     assert response.status_code == 400
+   

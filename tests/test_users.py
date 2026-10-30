@@ -1,6 +1,7 @@
 import pytest
 from db.seed import read_file
 from db.connection import get_connection
+from db.password import check_pwd
 
 
 @pytest.fixture
@@ -54,24 +55,29 @@ def test_users_inserted_correctly(test_file):
 
     try:
         cursor.execute("""
-            SELECT email, password, name
+            SELECT name, email, password
             FROM users
-            ORDER BY id
         """)
 
         result = cursor.fetchall()
 
-        expected = [
-            (user["email"], user["password"], user["name"])
-            for user in test_file
-        ]
+        db_users = {
+            row[1]: row
+            for row in result
+        }
 
-        assert result == expected
+        assert len(result) == len(test_file)
+
+        for user in test_file:
+            db_user = db_users[user["email"]]
+
+            assert db_user[0] == user["name"]
+            assert db_user[1] == user["email"]
+            assert check_pwd(user["password"], db_user[2])
 
     finally:
         cursor.close()
         conn.close()
-
 
 def test_users_have_created_at():
     conn = get_connection()
