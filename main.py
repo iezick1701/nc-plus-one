@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from db.password import check_pwd
 from db.token import create_access_token
 from fastapi.responses import JSONResponse
+from db.password import hash_pwd
 import jwt
 
 app = FastAPI(title="NC Plus One API", debug=True)
@@ -76,14 +77,17 @@ class LoginRequest(BaseModel):
     password: str
     
 class CreateUser(BaseModel):
-    name:str
-    email: str
+    email:str
     password: str
+    name: str
 
 @app.exception_handler(RequestValidationError)
 def check_cred(request: Request, exc: RequestValidationError):
-    if request.url.path == "/api/auth/login":
+    if request.url.path == "/api/auth/login" :
         return JSONResponse(content ={"error":"Invalid login request"}, status_code=400)
+    if request.url.path == "/api/auth/register" :
+        return JSONResponse(content ={"error":"Invalid register request"}, status_code=400)
+    
     return JSONResponse(content ={"error":exc.errors()}, status_code=422)
         
 
@@ -116,32 +120,43 @@ def check_login_cred(user:LoginRequest):
     return {"token":token}
 
 
-@app.post("/api/auth/register")
-def check_login_cred(user:LoginRequest):
+@app.post("/api/auth/register",status_code=201)
+def check_login_cred(user:CreateUser):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-                "INSERT INTO users(email,password,names
-                ),
-                (user.email,)
+    "SELECT email FROM users WHERE email = %s",
+    (user.email,)
+        )
+
+    existing_user = cursor.fetchone()
+
+    if existing_user is not None:
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=409, detail="Email already registered")
+    cursor.execute("""
+        INSERT INTO users (email,password,name)
+        VALUES (%s,%s,%s)
+        RETURNING id,created_at;
+        """,
+        (user.email,hash_pwd(user.password),user.name)
+        
             )
-    found_user = cursor.fetchone()
-    if found_user is None:
-        cursor.close()
-        conn.close()
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    pwd = found_user[2]
-    if check_pwd(user.password,pwd) is False:
-        cursor.close()
-        conn.close()
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    created_user = cursor.fetchone()
+        
     
     cursor.close()
+    conn.commit()
     conn.close()
+    return {"user":{"id":created_user[0],
+                    "name":user.name,
+                    "email":user.email,
+                    "created_at":created_user[1]
+                    }}
+
     
-    token = create_access_token(found_user[0])
-    return {"token":token}
+    
     
 
     

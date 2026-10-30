@@ -17,10 +17,10 @@ def seed_users(database=None, data_path="db/data/dev"):
     data  = read_file('users',data_path)
     for user in data:
         cursor.execute("""
-            INSERT INTO users (name, email, password)
+            INSERT INTO users ( email, password, name)
                 VALUES (%s, %s, %s);
             """,
-            (user["name"] ,user["email"], hash_pwd(user["password"]))
+            ( user["email"], hash_pwd(user["password"]),user["name"])
         )
     conn.commit()
     conn.close()
