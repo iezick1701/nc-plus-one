@@ -55,14 +55,15 @@ def test_users_inserted_correctly(test_file):
 
     try:
         cursor.execute("""
-            SELECT name, email, password
+            SELECT   email, password, name
             FROM users
+            ORDER BY id
         """)
 
         result = cursor.fetchall()
 
         db_users = {
-            row[1]: row
+            row[0]: row
             for row in result
         }
 
@@ -71,13 +72,14 @@ def test_users_inserted_correctly(test_file):
         for user in test_file:
             db_user = db_users[user["email"]]
 
-            assert db_user[0] == user["name"]
-            assert db_user[1] == user["email"]
-            assert check_pwd(user["password"], db_user[2])
+            assert db_user[0] == user["email"]
+            assert db_user[2] == user["name"]
+            assert check_pwd(user["password"], db_user[1])
 
     finally:
         cursor.close()
         conn.close()
+
 
 def test_users_have_created_at():
     conn = get_connection()

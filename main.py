@@ -8,6 +8,7 @@ from db.token import create_access_token
 from fastapi.responses import JSONResponse
 from db.password import hash_pwd
 import jwt
+from fastapi import Header
 
 app = FastAPI(title="NC Plus One API", debug=True)
 
@@ -80,6 +81,10 @@ class CreateUser(BaseModel):
     email:str
     password: str
     name: str
+
+
+
+
 
 @app.exception_handler(RequestValidationError)
 def check_cred(request: Request, exc: RequestValidationError):
@@ -156,7 +161,12 @@ def check_login_cred(user:CreateUser):
                     }}
 
     
-    
+@app.post("/api/events/:{id}/rsvp",status_code=201)
+def create_rsvp(id:int):
+    token = create_access_token(id=id)
+
+
+    pass   
     
 
     
