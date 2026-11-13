@@ -19,6 +19,16 @@ def handle_http_exception(request: Request, exc: HTTPException):
         status_code=exc.status_code,
         content={"error": exc.detail}
     )
+
+@app.get("/api/health")
+def get_health():
+    return{
+        "status":"healthy"
+        }
+
+
+
+
 @app.get("/api/events")
 def get_events():
     conn = get_connection()
